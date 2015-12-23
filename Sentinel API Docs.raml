@@ -1,0 +1,110 @@
+#%RAML 0.8
+
+title: Sentinel.sh Login flow for 3rd Parties
+baseUri: http://sentinel.sh/api/{version}
+version: v1
+/qauth/login:
+  is: [ secured ]
+  description: |
+    Create a login request for the user identified by their email
+    address and the authenticated service provider. (step 2)
+  post:
+    body:
+      application/json; charset=utf-8:
+        description: |
+          The secret1 property is passed allong to the mobile device for it to
+          validate the login request.
+        example:
+          {
+            "email": "bob@example.com",
+            "secret1": "ffa6706ff2127a749973072756f83c532e43ed02"
+          }
+    responses:
+      200:
+        description: |
+          Return a session ID with which the login request can be identified by
+          the 3rd party service in step 7.  
+        body:
+          application/json; charset=utf-8:
+            example: |
+              {
+                "sessionID": "a5828e8b-b203-49ba-8aa0-60b9dfb20220"
+              }
+//gateway.sandbox.push.apple.com:
+  description: |
+    Send push notification to mobile device associated with email address.
+    The following example is extra data appended to the push notification
+    payload. (step 3)
+  example:
+      {
+        "email": "bob@example.com",
+        "secret1": "ffa6706ff2127a749973072756f83c532e43ed02",
+        "sessionID": "a5828e8b-b203-49ba-8aa0-60b9dfb20220",
+        "service": {
+          "id": "a28c719d-5594-46a9-bfe7-97fa4d35e3fe",
+          "serviceUrl": "https://example.com",
+          "serviceLogoUrl": "https://cdn.example.com/i/logo.png"
+        }
+      }
+//example.com/verify:
+  description: |
+    The mobile device trades secrets with the 3rd party. (step 5)
+  post:
+    body:
+      application/json; charset=utf-8:
+        example:
+          {
+            "secret1": "ffa6706ff2127a749973072756f83c532e43ed02",
+            "sessionID": "a5828e8b-b203-49ba-8aa0-60b9dfb20220"
+          }
+    responses:
+      200:
+        body:
+          application/json; charset=utf-8:
+            example:
+              {
+                "secret2": "29df362b5cfa5c96d22f8d20f29d9a367dd0d359"
+              }
+/qauth/status:
+  is: [ secured ]
+  description: |
+    Mobile device responds wether it accepts or declines the login request. (step 6)
+  post:
+    body:
+      application/json; charset=utf-8:
+        description: |
+          The token property is the same token from step 3 and includes email,
+          serviceURL, secret1, etc.
+          The enc1 property is gained from contact with the 3rd party example.com
+          service.
+          The secret2 property is acquired when trading secrets in step 5.
+        example:
+          {
+            "status": "accept",
+            "token": "eyJ...",
+            "secret2": "29df362b5cfa5c96d22f8d20f29d9a367dd0d359"
+          }
+//example.com/status:
+  description: Sentinel.sh calls the status endpoint with the appropriate data. (step 7)
+  post:
+    body:
+      application/json; charset=utf-8:
+        description: |
+          The sessionID property is the same ID from step 2 and can be used to
+          identiy the login request.
+        example:
+          {
+            "status": "accepted",
+            "secret2": "29df362b5cfa5c96d22f8d20f29d9a367dd0d359",
+            "sessionID": "a5828e8b-b203-49ba-8aa0-60b9dfb20220"
+          }
+        example:
+          {
+            "error": "login_timeout",
+            "error_description": "login was not confirmed within default timeout"
+          }
+    responses:
+      2xx:
+        description: On a successful response the login request will be
+          completed, on error the callbak will be tried once again.
+
