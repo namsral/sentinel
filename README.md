@@ -3,8 +3,8 @@ Sentinel
 
 Sentinel is part of a service which enables its users to sign-in to third party services using an email address and their smartphone as a token of authentication. The Sentinel codebase was abandoned and serves only as a showcase for using two implementations:
 
-	1. Go's Interfaces used as a constraint when designing standalone services, avoid code dependancy and mimic the decoupling in microservices.
-	2. JSON Web Tokens used extensivly to replace web cookies and enhance security for both the service and the end-users.
+1. Go's Interfaces used as a constraint when designing standalone services, avoid code dependancy and mimic the decoupling in microservices.
+2. JSON Web Tokens used extensivly to replace web cookies and enhance security for both the service and the end-users.
 
 The Sentinel API service can be built and made to run with a Postgres schema, but will be of little use without the 'missing' components like the smarthone apps.
 
