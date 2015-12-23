@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-T=$(mktemp)
-cat /Users/lars/Projects/Templates/copyright_notice.txt > $T && cat "$1" >> $T && cat $T > "$1" && echo $T
